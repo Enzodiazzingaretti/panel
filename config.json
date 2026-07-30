@@ -2,23 +2,74 @@
   "puerto": 4321,
   "maquinas": {
     "DESKTOP-HM0V74B": {
+      "etiqueta": "PC principal",
       "repos": "D:\\Disco D\\GitHubRepos",
       "boveda": "D:\\Drive\\boveda"
+    },
+    "DESKTOP-9BH2BPQ": {
+      "etiqueta": "Notebook",
+      "repos": "C:\\Users\\Enzo\\Documents",
+      "boveda": "G:\\My Drive\\boveda"
     }
   },
   "candidatos": {
-    "repos": ["D:\\Disco D\\GitHubRepos", "C:\\Users\\Enzo\\Documents"],
-    "boveda": ["D:\\Drive\\boveda", "G:\\My Drive\\boveda"]
+    "repos": [
+      "D:\\Disco D\\GitHubRepos",
+      "C:\\Users\\Enzo\\Documents"
+    ],
+    "boveda": [
+      "D:\\Drive\\boveda",
+      "G:\\My Drive\\boveda"
+    ]
   },
   "proyectos": {
-    "kexxy-portfolio":     { "ficha": "kexxy-portfolio",           "prod": "https://portfolio-kexxy.vercel.app" },
-    "tamara-portfolio":    { "ficha": "tamara-portfolio",          "prod": "https://tamara-portfolio-xi.vercel.app" },
-    "newmetals-portfolio": { "ficha": "newmetals-portfolio",       "prod": "https://newmetals-portfolio.vercel.app" },
-    "presskit_digital":    { "ficha": "presskit-digital",          "prod": "https://presskit-digital.vercel.app" },
-    "Aurora":              { "ficha": "aurora-cecilia-hospedajes", "prod": null, "alias": ["aurora-retreat"] },
-    "panel":               { "ficha": "panel-local",              "prod": null },
-    "Aural-studio":        { "ficha": null, "prod": null, "alias": ["creative-agency-template"] },
-    "sommelier_portfolio": { "ficha": null, "prod": null, "alias": ["sommelier-portfolio"] },
-    "VEIL":                { "ficha": null, "prod": null, "alias": ["veil"] }
+    "kexxy-portfolio": {
+      "ficha": "kexxy-portfolio",
+      "prod": "https://portfolio-kexxy.vercel.app"
+    },
+    "tamara-portfolio": {
+      "ficha": "tamara-portfolio",
+      "prod": "https://tamara-portfolio-xi.vercel.app"
+    },
+    "newmetals-portfolio": {
+      "ficha": "newmetals-portfolio",
+      "prod": "https://newmetals-portfolio.vercel.app"
+    },
+    "presskit_digital": {
+      "ficha": "presskit-digital",
+      "prod": "https://presskit-digital.vercel.app"
+    },
+    "Aurora": {
+      "ficha": "aurora-cecilia-hospedajes",
+      "prod": null,
+      "alias": [
+        "aurora-retreat"
+      ]
+    },
+    "panel": {
+      "ficha": "panel-local",
+      "prod": null
+    },
+    "Aural-studio": {
+      "ficha": null,
+      "prod": null,
+      "alias": [
+        "creative-agency-template"
+      ]
+    },
+    "sommelier_portfolio": {
+      "ficha": null,
+      "prod": null,
+      "alias": [
+        "sommelier-portfolio"
+      ]
+    },
+    "VEIL": {
+      "ficha": null,
+      "prod": null,
+      "alias": [
+        "veil"
+      ]
+    }
   }
 }
