@@ -1,0 +1,5 @@
+cache.json
+thumbs/*.webp
+!thumbs/.gitkeep
+*.log
+node_modules/

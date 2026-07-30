@@ -1,0 +1,23 @@
+{
+  "puerto": 4321,
+  "maquinas": {
+    "DESKTOP-HM0V74B": {
+      "repos": "D:\\Disco D\\GitHubRepos",
+      "boveda": "D:\\Drive\\boveda"
+    }
+  },
+  "candidatos": {
+    "repos": ["D:\\Disco D\\GitHubRepos", "C:\\Users\\Enzo\\Documents"],
+    "boveda": ["D:\\Drive\\boveda", "G:\\My Drive\\boveda"]
+  },
+  "proyectos": {
+    "kexxy-portfolio":     { "ficha": "kexxy-portfolio",           "prod": "https://portfolio-kexxy.vercel.app" },
+    "tamara-portfolio":    { "ficha": "tamara-portfolio",          "prod": "https://tamara-portfolio-xi.vercel.app" },
+    "newmetals-portfolio": { "ficha": "newmetals-portfolio",       "prod": "https://newmetals-portfolio.vercel.app" },
+    "presskit_digital":    { "ficha": "presskit-digital",          "prod": "https://presskit-digital.vercel.app" },
+    "Aurora":              { "ficha": "aurora-cecilia-hospedajes", "prod": null },
+    "Aural-studio":        { "ficha": null, "prod": null },
+    "sommelier_portfolio": { "ficha": null, "prod": null },
+    "VEIL":                { "ficha": null, "prod": null }
+  }
+}
