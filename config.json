@@ -16,6 +16,7 @@
     "newmetals-portfolio": { "ficha": "newmetals-portfolio",       "prod": "https://newmetals-portfolio.vercel.app" },
     "presskit_digital":    { "ficha": "presskit-digital",          "prod": "https://presskit-digital.vercel.app" },
     "Aurora":              { "ficha": "aurora-cecilia-hospedajes", "prod": null },
+    "panel":               { "ficha": "panel-local",              "prod": null },
     "Aural-studio":        { "ficha": null, "prod": null },
     "sommelier_portfolio": { "ficha": null, "prod": null },
     "VEIL":                { "ficha": null, "prod": null }
