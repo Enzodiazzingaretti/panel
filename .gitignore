@@ -1,5 +1,5 @@
 cache.json
-thumbs/*.webp
-!thumbs/.gitkeep
+thumbs/*-desktop.png
+thumbs/*-mobile.png
 *.log
 node_modules/

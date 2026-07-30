@@ -11,6 +11,7 @@ import { leerFicha, contarSesionesSinDestilar } from './lib/boveda.mjs';
 import { calcularAlertas } from './lib/alertas.mjs';
 import { leerCache, escribirCache } from './lib/cache.mjs';
 import { ejecutarAccion } from './lib/acciones.mjs';
+import { capturarTodas, listarThumbs, elegirMiniatura } from './lib/miniaturas.mjs';
 
 const TIPOS = {
   '.html': 'text/html; charset=utf-8',
@@ -43,7 +44,7 @@ function scriptDeDev(rutaRepo) {
   }
 }
 
-async function armarEstado({ config, maquina, conFetch }) {
+async function armarEstado({ config, maquina, conFetch, thumbs }) {
   const enDisco = carpetasDeProyecto(maquina.repos);
   const configurados = Object.keys(config.proyectos ?? {});
   const nombres = [...new Set([...configurados, ...enDisco])]
@@ -52,6 +53,7 @@ async function armarEstado({ config, maquina, conFetch }) {
   if (conFetch) await fetchTodos(maquina.repos, nombres);
 
   const git = await leerTodos(maquina.repos, nombres);
+  const archivosThumbs = listarThumbs(thumbs);
 
   const proyectos = nombres.map(nombre => {
     const cfg = config.proyectos?.[nombre] ?? { ficha: null, prod: null, sinConfigurar: true };
@@ -60,7 +62,8 @@ async function armarEstado({ config, maquina, conFetch }) {
       git: git[nombre],
       ficha: leerFicha(maquina.boveda, cfg.ficha),
       config: cfg,
-      scriptDev: scriptDeDev(join(maquina.repos, nombre))
+      scriptDev: scriptDeDev(join(maquina.repos, nombre)),
+      miniatura: elegirMiniatura(nombre, archivosThumbs)
     };
   });
 
@@ -90,13 +93,18 @@ export function crearServidor({ raiz, config, maquina }) {
     try {
       if (url.pathname === '/api/estado') {
         const conFetch = url.searchParams.get('fetch') === '1';
-        const estado = await armarEstado({ config, maquina, conFetch });
+        const estado = await armarEstado({ config, maquina, conFetch, thumbs });
         escribirCache(rutaCache, estado);
         return json(200, estado);
       }
 
       if (url.pathname === '/api/cache') {
         return json(200, leerCache(rutaCache) ?? { vacia: true });
+      }
+
+      if (url.pathname === '/api/miniaturas' && req.method === 'POST') {
+        const r = await capturarTodas(config, thumbs);
+        return json(200, r);
       }
 
       if (url.pathname === '/api/accion' && req.method === 'POST') {
