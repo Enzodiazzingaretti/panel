@@ -53,7 +53,14 @@ function tarjeta(p) {
 }
 
 function dibujar(datos) {
-  $('#maquina').textContent = `${datos.maquina.hostname} · ${datos.proyectos.length} proyectos`;
+  // Se trabaja desde dos maquinas y el panel es igual en las dos: conviene que diga en
+  // cual estas de un vistazo. La etiqueta va adelante y el hostname al lado, salvo que no
+  // haya etiqueta (maquina nueva sin configurar) y entonces alcanza con el hostname.
+  const { etiqueta, hostname } = datos.maquina;
+  const donde = etiqueta && etiqueta !== hostname
+    ? `<strong class="etiqueta-maquina">${etiqueta}</strong> · ${hostname}`
+    : hostname;
+  $('#maquina').innerHTML = `${donde} · ${datos.proyectos.length} proyectos`;
 
   $('#alertas').innerHTML = (datos.alertas ?? [])
     .map(a => `<div class="aviso ${a.severidad}"><span class="marca">${MARCA[a.severidad]}</span><span>${a.texto}</span></div>`)

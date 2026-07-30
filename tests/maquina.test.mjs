@@ -28,6 +28,20 @@ test('autodetecta probando candidatos cuando el hostname es desconocido', () => 
   assert.equal(r.hostname, 'LAPTOP-NUEVA');
 });
 
+// Se trabaja desde dos maquinas y el panel es igual en las dos: tiene que decir en cual estas.
+test('devuelve la etiqueta legible de la maquina', () => {
+  const conEtiqueta = {
+    ...config,
+    maquinas: { 'DESKTOP-9BH2BPQ': { etiqueta: 'Notebook', repos: 'C:\\x', boveda: 'G:\\y' } }
+  };
+  assert.equal(resolverMaquina(conEtiqueta, 'DESKTOP-9BH2BPQ', () => true).etiqueta, 'Notebook');
+});
+
+test('sin etiqueta cae al hostname en vez de quedar vacia', () => {
+  assert.equal(resolverMaquina(config, 'DESKTOP-HM0V74B', () => true).etiqueta, 'DESKTOP-HM0V74B');
+  assert.equal(resolverMaquina(config, 'LAPTOP-NUEVA', () => true).etiqueta, 'LAPTOP-NUEVA');
+});
+
 test('falla con un mensaje claro si ningun candidato existe', () => {
   assert.throws(
     () => resolverMaquina(config, 'OTRA-PC', () => false),

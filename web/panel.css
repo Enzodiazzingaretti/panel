@@ -70,6 +70,7 @@ body {
 }
 
 .maquina { color: var(--texto-suave); font-size: 0.85rem; margin: 0.35rem 0 1rem; }
+.etiqueta-maquina { color: var(--texto); font-weight: 600; }
 
 .acciones-globales { display: flex; gap: 0.6rem; flex-wrap: wrap; }
 

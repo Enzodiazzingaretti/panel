@@ -61,7 +61,12 @@ async function armarEstado({ config, maquina, conFetch, thumbs }) {
   const extras = { sesionesSinDestilar: contarSesionesSinDestilar(maquina.boveda) };
 
   return {
-    maquina: { hostname: maquina.hostname, repos: maquina.repos, boveda: maquina.boveda },
+    maquina: {
+      hostname: maquina.hostname,
+      etiqueta: maquina.etiqueta ?? maquina.hostname,
+      repos: maquina.repos,
+      boveda: maquina.boveda
+    },
     proyectos,
     alertas: calcularAlertas(proyectos, extras, new Date()),
     generado: new Date().toISOString(),
