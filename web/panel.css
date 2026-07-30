@@ -1,0 +1,243 @@
+:root {
+  --fondo: #08090c;
+  --texto: #e8e6e3;
+  --texto-suave: #9a978f;
+  --vidrio: rgba(255, 255, 255, 0.04);
+  --vidrio-alto: rgba(255, 255, 255, 0.08);
+  --borde: rgba(255, 255, 255, 0.09);
+  --borde-filo: rgba(255, 255, 255, 0.18);
+  --alta: rgba(224, 96, 78, 0.14);
+  --alta-borde: rgba(224, 96, 78, 0.35);
+  --media: rgba(214, 160, 74, 0.13);
+  --media-borde: rgba(214, 160, 74, 0.32);
+  --baja: rgba(255, 255, 255, 0.05);
+  --lento: 700ms;
+  --curva: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --serif: Georgia, Constantia, serif;
+  --sans: "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--fondo);
+  color: var(--texto);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.5;
+  padding: 2.5rem clamp(1rem, 4vw, 3rem) 3rem;
+  overflow-x: hidden;
+}
+
+/* --- fondo con manchas lentas --- */
+.fondo {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  filter: blur(90px) saturate(130%);
+  will-change: transform;
+}
+
+.mancha {
+  position: absolute;
+  width: 46vw;
+  height: 46vw;
+  border-radius: 50%;
+  opacity: 0.5;
+}
+
+.m1 { background: #2d4a7c; top: -12%; left: -8%;  animation: vagar1 74s var(--curva) infinite alternate; }
+.m2 { background: #6b3555; top: 30%;  left: 55%;  animation: vagar2 88s var(--curva) infinite alternate; }
+.m3 { background: #1f5a52; top: 62%;  left: 8%;   animation: vagar3 66s var(--curva) infinite alternate; }
+.m4 { background: #4a3a72; top: -5%;  left: 62%;  animation: vagar1 81s var(--curva) infinite alternate-reverse; }
+
+@keyframes vagar1 { to { transform: translate(14vw, 18vh) scale(1.18); } }
+@keyframes vagar2 { to { transform: translate(-18vw, 10vh) scale(0.86); } }
+@keyframes vagar3 { to { transform: translate(12vw, -14vh) scale(1.12); } }
+
+/* --- cabecera --- */
+.cabecera { margin-bottom: 2rem; }
+
+.cabecera h1 {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: clamp(2rem, 5vw, 3rem);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.maquina { color: var(--texto-suave); font-size: 0.85rem; margin: 0.35rem 0 1rem; }
+
+.acciones-globales { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+
+/* --- vidrio base --- */
+.vidrio, .tarjeta, .aviso, .boton-vidrio {
+  background: var(--vidrio);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  border: 1px solid var(--borde);
+  border-top-color: var(--borde-filo);
+}
+
+.boton-vidrio {
+  color: var(--texto);
+  font: inherit;
+  font-size: 0.82rem;
+  padding: 0.42rem 0.9rem;
+  border-radius: 9px;
+  cursor: pointer;
+  transition: background var(--lento) var(--curva), border-color var(--lento) var(--curva);
+}
+
+.boton-vidrio:hover { background: var(--vidrio-alto); border-color: var(--borde-filo); }
+.boton-vidrio:disabled { opacity: 0.45; cursor: default; }
+
+/* --- alertas --- */
+.alertas { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 2.5rem; }
+.alertas:empty { display: none; }
+
+.aviso {
+  border-radius: 11px;
+  padding: 0.6rem 0.95rem;
+  font-size: 0.88rem;
+  display: flex;
+  gap: 0.6rem;
+  align-items: baseline;
+  animation: aparecer var(--lento) var(--curva) both;
+}
+
+.aviso.alta  { background: var(--alta);  border-color: var(--alta-borde); }
+.aviso.media { background: var(--media); border-color: var(--media-borde); }
+.aviso.baja  { background: var(--baja); }
+
+.aviso .marca { font-size: 0.7rem; color: var(--texto-suave); text-transform: uppercase; letter-spacing: 0.08em; flex-shrink: 0; }
+
+@keyframes aparecer { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+
+/* --- grilla de proyectos --- */
+.titulo-seccion {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 1.15rem;
+  color: var(--texto-suave);
+  margin: 0 0 1rem;
+}
+
+.grilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 1.1rem;
+}
+
+.tarjeta {
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  contain: paint;
+  min-height: 260px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  transition:
+    background var(--lento) var(--curva),
+    border-color var(--lento) var(--curva),
+    border-radius var(--lento) var(--curva),
+    backdrop-filter var(--lento) var(--curva);
+}
+
+/* la miniatura vive DETRAS del vidrio: el color del sitio tiñe la tarjeta */
+.tarjeta .foto {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-size: cover;
+  background-position: top center;
+  opacity: 0.55;
+  transition: opacity var(--lento) var(--curva), transform 1.4s var(--curva);
+}
+
+.tarjeta:hover {
+  background: var(--vidrio-alto);
+  border-color: var(--borde-filo);
+  border-radius: 22px;
+  backdrop-filter: blur(9px) saturate(150%);
+  -webkit-backdrop-filter: blur(9px) saturate(150%);
+}
+
+.tarjeta:hover .foto { opacity: 0.8; transform: scale(1.03); }
+
+.tarjeta.sin-foto .foto {
+  background: linear-gradient(150deg, rgba(255,255,255,0.05), rgba(255,255,255,0.01));
+  opacity: 1;
+}
+
+.cuerpo { padding: 1rem 1.05rem 1.05rem; }
+
+.nombre {
+  font-family: var(--serif);
+  font-size: 1.2rem;
+  margin: 0 0 0.15rem;
+  letter-spacing: -0.01em;
+}
+
+.descripcion {
+  color: var(--texto-suave);
+  font-size: 0.82rem;
+  margin: 0 0 0.7rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.75rem;
+  font-size: 0.75rem;
+  color: var(--texto-suave);
+  margin-bottom: 0.8rem;
+}
+
+.meta .marcador { color: var(--texto); }
+.meta .sucio { color: #d6a04a; }
+.meta .atras { color: #e0604e; }
+
+.botones { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+
+.botones button {
+  font: inherit;
+  font-size: 0.75rem;
+  padding: 0.3rem 0.62rem;
+  border-radius: 7px;
+  color: var(--texto);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--borde);
+  cursor: pointer;
+  transition: background var(--lento) var(--curva);
+}
+
+.botones button:hover { background: rgba(255, 255, 255, 0.14); }
+
+.pie { margin-top: 2.5rem; color: var(--texto-suave); font-size: 0.75rem; }
+
+/* --- mobile --- */
+@media (max-width: 560px) {
+  body { padding: 1.5rem 1rem 2rem; }
+  .grilla { grid-template-columns: 1fr; gap: 0.9rem; }
+  .tarjeta { min-height: 220px; }
+  .mancha { width: 80vw; height: 80vw; }
+}
+
+/* --- degradacion si el blur va lento o el usuario pide menos movimiento --- */
+@media (prefers-reduced-motion: reduce) {
+  .mancha { animation: none; }
+  .tarjeta, .boton-vidrio, .aviso, .tarjeta .foto {
+    transition-duration: 200ms;
+    animation: none;
+  }
+  .tarjeta:hover { border-radius: 16px; }
+}

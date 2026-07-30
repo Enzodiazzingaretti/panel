@@ -1,4 +1,39 @@
 <!doctype html>
-<meta charset="utf-8">
-<title>Panel</title>
-<p>en construccion</p>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Panel</title>
+  <link rel="stylesheet" href="panel.css">
+</head>
+<body>
+  <div class="fondo" aria-hidden="true">
+    <span class="mancha m1"></span>
+    <span class="mancha m2"></span>
+    <span class="mancha m3"></span>
+    <span class="mancha m4"></span>
+  </div>
+
+  <header class="cabecera">
+    <h1>Panel</h1>
+    <p class="maquina" id="maquina"></p>
+    <div class="acciones-globales">
+      <button id="refrescar" class="boton-vidrio">Refrescar</button>
+      <button id="capturar" class="boton-vidrio">Actualizar miniaturas</button>
+    </div>
+  </header>
+
+  <section id="alertas" class="alertas" aria-live="polite"></section>
+
+  <main>
+    <h2 class="titulo-seccion">Proyectos</h2>
+    <div id="grilla" class="grilla"></div>
+  </main>
+
+  <footer class="pie">
+    <span id="generado"></span>
+  </footer>
+
+  <script src="panel.js" type="module"></script>
+</body>
+</html>
