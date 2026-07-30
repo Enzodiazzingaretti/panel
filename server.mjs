@@ -12,6 +12,7 @@ import { calcularAlertas } from './lib/alertas.mjs';
 import { leerCache, escribirCache } from './lib/cache.mjs';
 import { ejecutarAccion } from './lib/acciones.mjs';
 import { capturarTodas, listarThumbs, elegirMiniatura } from './lib/miniaturas.mjs';
+import { indiceDeCarpetas, configDeCarpeta, carpetaValida } from './lib/proyectos.mjs';
 
 const TIPOS = {
   '.html': 'text/html; charset=utf-8',
@@ -55,8 +56,10 @@ async function armarEstado({ config, maquina, conFetch, thumbs }) {
   const git = await leerTodos(maquina.repos, nombres);
   const archivosThumbs = listarThumbs(thumbs);
 
+  const indice = indiceDeCarpetas(config);
+
   const proyectos = nombres.map(nombre => {
-    const cfg = config.proyectos?.[nombre] ?? { ficha: null, prod: null, sinConfigurar: true };
+    const cfg = configDeCarpeta(config, nombre, indice);
     return {
       nombre,
       git: git[nombre],
@@ -119,8 +122,14 @@ export function crearServidor({ raiz, config, maquina }) {
         });
 
         const { proyecto, accion, bat } = JSON.parse(cuerpo || '{}');
-        const cfg = config.proyectos?.[proyecto];
-        if (!cfg) return json(400, { error: `Proyecto desconocido: ${proyecto}` });
+
+        // La carpeta tiene que existir de verdad dentro de la carpeta de repos. Eso es
+        // lo que acota lo que el navegador puede pedir, y no las claves de config.json:
+        // en la notebook las carpetas se llaman distinto y aun asi tienen que funcionar.
+        if (!carpetaValida(maquina.repos, proyecto)) {
+          return json(400, { error: `Proyecto desconocido: ${proyecto}` });
+        }
+        const cfg = configDeCarpeta(config, proyecto);
 
         const rutaRepo = join(maquina.repos, proyecto);
         const git = (await leerTodos(maquina.repos, [proyecto]))[proyecto];
