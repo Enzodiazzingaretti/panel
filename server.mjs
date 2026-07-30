@@ -1,6 +1,6 @@
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
-import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { join, extname, normalize, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import os from 'node:os';
@@ -12,26 +12,17 @@ import { calcularAlertas } from './lib/alertas.mjs';
 import { leerCache, escribirCache } from './lib/cache.mjs';
 import { ejecutarAccion } from './lib/acciones.mjs';
 import { capturarTodas, listarThumbs, elegirMiniatura } from './lib/miniaturas.mjs';
-import { indiceDeCarpetas, configDeCarpeta, carpetaValida } from './lib/proyectos.mjs';
+import { indiceDeCarpetas, configDeCarpeta, carpetaValida, listarProyectos } from './lib/proyectos.mjs';
 
 const TIPOS = {
   '.html': 'text/html; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8',
   '.webp': 'image/webp',
+  '.png': 'image/png',
   '.svg': 'image/svg+xml',
   '.json': 'application/json; charset=utf-8'
 };
-
-function carpetasDeProyecto(rutaRepos) {
-  try {
-    return readdirSync(rutaRepos)
-      .filter(n => !n.startsWith('.'))
-      .filter(n => statSync(join(rutaRepos, n)).isDirectory());
-  } catch {
-    return [];
-  }
-}
 
 // El boton de dev solo aparece si el proyecto tiene un script que levantar.
 function scriptDeDev(rutaRepo) {
@@ -46,10 +37,7 @@ function scriptDeDev(rutaRepo) {
 }
 
 async function armarEstado({ config, maquina, conFetch, thumbs }) {
-  const enDisco = carpetasDeProyecto(maquina.repos);
-  const configurados = Object.keys(config.proyectos ?? {});
-  const nombres = [...new Set([...configurados, ...enDisco])]
-    .filter(n => existsSync(join(maquina.repos, n)));
+  const nombres = listarProyectos(maquina.repos, config);
 
   if (conFetch) await fetchTodos(maquina.repos, nombres);
 

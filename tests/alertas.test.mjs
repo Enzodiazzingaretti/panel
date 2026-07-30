@@ -24,6 +24,23 @@ test('sin problemas no hay alertas', () => {
   assert.deepEqual(calcularAlertas([proyecto()], sinExtras, HOY), []);
 });
 
+test('avisa que un proyecto configurado no esta versionado', () => {
+  const a = calcularAlertas([proyecto({ git: { esRepo: false } })], sinExtras, HOY);
+  assert.equal(a.length, 1);
+  assert.match(a[0].texto, /no es un repo de git/);
+});
+
+// En la notebook la carpeta de repos es Documentos entera. Una carpeta suelta que no es
+// repo ya no llega hasta aca, y si llegara no es asunto del panel: eran 11 avisos de ruido.
+test('no avisa por una carpeta suelta que no es repo ni esta configurada', () => {
+  const suelta = proyecto({
+    git: { esRepo: false },
+    ficha: null,
+    config: { ficha: null, prod: null, sinConfigurar: true }
+  });
+  assert.deepEqual(calcularAlertas([suelta], sinExtras, HOY), []);
+});
+
 test('avisa commits sin traer con severidad alta', () => {
   const a = calcularAlertas([proyecto({ git: { atras: 8 } })], sinExtras, HOY);
   const aviso = a.find(x => /sin traer/.test(x.texto));
