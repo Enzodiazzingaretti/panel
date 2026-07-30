@@ -49,27 +49,6 @@
     "panel": {
       "ficha": "panel-local",
       "prod": null
-    },
-    "Aural-studio": {
-      "ficha": null,
-      "prod": null,
-      "alias": [
-        "creative-agency-template"
-      ]
-    },
-    "sommelier_portfolio": {
-      "ficha": null,
-      "prod": null,
-      "alias": [
-        "sommelier-portfolio"
-      ]
-    },
-    "VEIL": {
-      "ficha": null,
-      "prod": null,
-      "alias": [
-        "veil"
-      ]
     }
   }
 }

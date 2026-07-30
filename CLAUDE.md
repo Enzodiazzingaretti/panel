@@ -68,11 +68,14 @@ El nombre de la carpeta **no** coincide siempre con el de la ficha ni con el del
 | Carpeta (PC principal) | Carpeta (notebook) | Ficha |
 |---|---|---|
 | `Aurora` | `aurora-retreat` | `aurora-cecilia-hospedajes` |
-| `Aural-studio` | `creative-agency-template` | — |
-| `sommelier_portfolio` | `sommelier-portfolio` | — |
-| `VEIL` | `veil` | — |
 | `presskit_digital` | `presskit_digital` | `presskit-digital` |
 | `panel` | `panel` | `panel-local` |
+
+> [!note] Aural-studio, sommelier_portfolio y VEIL se eliminaron
+> El 2026-07-30 se decidió quedarse solo con los proyectos publicados en Vercel.
+> Se borraron del mapa, de las dos máquinas y de GitHub. Vercel tiene exactamente
+> cuatro proyectos: `tamara-portfolio`, `portfolio` (kexxy), `newmetals-portfolio`
+> y `presskit-digital`.
 
 Las diferencias por máquina se resuelven con `alias` en `config.json`, y la búsqueda
 ignora mayúsculas. Si aparece una carpeta que no está en el mapa, el panel la muestra
