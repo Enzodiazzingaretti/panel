@@ -10,6 +10,7 @@ import { leerTodos, fetchTodos } from './lib/repos.mjs';
 import { leerFicha, contarSesionesSinDestilar } from './lib/boveda.mjs';
 import { calcularAlertas } from './lib/alertas.mjs';
 import { leerCache, escribirCache } from './lib/cache.mjs';
+import { ejecutarAccion } from './lib/acciones.mjs';
 
 const TIPOS = {
   '.html': 'text/html; charset=utf-8',
@@ -96,6 +97,42 @@ export function crearServidor({ raiz, config, maquina }) {
 
       if (url.pathname === '/api/cache') {
         return json(200, leerCache(rutaCache) ?? { vacia: true });
+      }
+
+      if (url.pathname === '/api/accion' && req.method === 'POST') {
+        const cuerpo = await new Promise((resolve, reject) => {
+          let d = '';
+          req.on('data', c => {
+            d += c;
+            if (d.length > 4096) reject(new Error('cuerpo demasiado grande'));
+          });
+          req.on('end', () => resolve(d));
+          req.on('error', reject);
+        });
+
+        const { proyecto, accion, bat } = JSON.parse(cuerpo || '{}');
+        const cfg = config.proyectos?.[proyecto];
+        if (!cfg) return json(400, { error: `Proyecto desconocido: ${proyecto}` });
+
+        const rutaRepo = join(maquina.repos, proyecto);
+        const git = (await leerTodos(maquina.repos, [proyecto]))[proyecto];
+        const scriptDev = scriptDeDev(rutaRepo);
+
+        try {
+          ejecutarAccion(accion, {
+            nombre: proyecto,
+            rutaRepo,
+            prod: cfg.prod,
+            remoto: git?.remoto,
+            fichaRuta: cfg.ficha ? `10-proyectos/${cfg.ficha}/${cfg.ficha}.md` : null,
+            bats: git?.bats ?? [],
+            bat,
+            scriptDev
+          });
+          return json(200, { ok: true });
+        } catch (e) {
+          return json(400, { error: e.message });
+        }
       }
 
       const pedido = url.pathname === '/' ? '/index.html' : url.pathname;
