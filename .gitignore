@@ -3,3 +3,4 @@ thumbs/*-desktop.png
 thumbs/*-mobile.png
 *.log
 node_modules/
+diagnostico.txt
