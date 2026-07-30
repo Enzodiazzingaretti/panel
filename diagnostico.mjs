@@ -81,6 +81,7 @@ if (!maquina) {
   log('  Agrega las rutas de esta maquina a "candidatos" en config.json.');
 } else {
   log(`  hostname : ${maquina.hostname}`);
+  log(`  etiqueta : ${maquina.etiqueta}${maquina.etiqueta === maquina.hostname ? '  (sin etiqueta, cae al hostname)' : ''}`);
   log(`  maquina nueva (autodetectada): ${maquina.nueva}`);
   log(`  repos    : ${maquina.repos}   ${existsSync(maquina.repos) ? '(existe)' : '(NO EXISTE)'}`);
   log(`  boveda   : ${maquina.boveda}  ${existsSync(maquina.boveda) ? '(existe)' : '(NO EXISTE)'}`);
@@ -101,10 +102,15 @@ if (maquina && existsSync(maquina.repos)) {
     .filter(n => !n.startsWith('.'))
     .filter(n => { try { return statSync(join(maquina.repos, n)).isDirectory(); } catch { return false; } });
 
-  log(`  ${carpetas.length} carpetas encontradas`);
+  // Se listan TODAS las carpetas a proposito, tambien las que el panel no muestra: en la
+  // notebook la carpeta de repos es `C:\Users\Enzo\Documents` entera y hace falta ver que
+  // quedo afuera. La columna "panel" dice cuales llegan a la grilla.
+  const mostrados = new Set(proyectos_ ? proyectos_.listarProyectos(maquina.repos, config) : carpetas);
+
+  log(`  ${carpetas.length} carpetas encontradas, ${mostrados.size} las muestra el panel`);
   log();
-  log('  carpeta                        -> clave de config      ficha            git');
-  log('  ' + '-'.repeat(88));
+  log('  carpeta                        -> clave de config      ficha            git  panel');
+  log('  ' + '-'.repeat(94));
 
   for (const carpeta of carpetas) {
     const clave = proyectos_ ? proyectos_.claveDeCarpeta(config, carpeta) : null;
@@ -114,8 +120,9 @@ if (maquina && existsSync(maquina.repos)) {
       const encontrada = boveda_ ? boveda_.leerFicha(maquina.boveda, cfg.ficha) : null;
       ficha = encontrada ? cfg.ficha : `${cfg.ficha} NO ENCONTRADA`;
     }
-    const esRepo = existsSync(join(maquina.repos, carpeta, '.git')) ? 'git' : '-';
-    log(`  ${carpeta.padEnd(30)} -> ${String(clave ?? 'SIN CONFIGURAR').padEnd(20)} ${ficha.padEnd(16)} ${esRepo}`);
+    const esRepo = proyectos_?.esRepoGit(join(maquina.repos, carpeta)) ? 'git' : '-';
+    const enPanel = mostrados.has(carpeta) ? 'si' : '-';
+    log(`  ${carpeta.padEnd(30)} -> ${String(clave ?? 'SIN CONFIGURAR').padEnd(20)} ${ficha.padEnd(16)} ${esRepo.padEnd(4)} ${enPanel}`);
   }
 } else {
   log('  no se puede listar: la carpeta de repos no se resolvio o no existe');
