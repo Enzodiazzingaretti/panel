@@ -32,3 +32,20 @@ La primera vez que se abre en una máquina nueva se autoconfigura probando las r
 El bloque `proyectos` mapea cada carpeta a su ficha en la bóveda y su URL de
 producción, porque los nombres no coinciden (`Aurora` es la ficha
 `aurora-cecilia-hospedajes`).
+
+## Acceso directo en el escritorio
+
+Correr una vez:
+
+    powershell -ExecutionPolicy Bypass -File Crear-Acceso-Directo.ps1
+
+Deja un `Panel.lnk` en el escritorio que abre el panel con doble clic.
+
+## En la notebook
+
+    git clone https://github.com/enzodiazzingaretti27-design/panel
+    cd panel
+    powershell -ExecutionPolicy Bypass -File Crear-Acceso-Directo.ps1
+
+La primera vez que se abre detecta las rutas de esa máquina y se escribe solo en
+`config.json`. Después conviene commitear ese cambio.
