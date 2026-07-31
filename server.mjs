@@ -8,6 +8,7 @@ import os from 'node:os';
 import { cargarConfig, resolverMaquina, guardarMaquina } from './lib/maquina.mjs';
 import { leerTodos, fetchTodos } from './lib/repos.mjs';
 import { leerFicha, contarSesionesSinDestilar } from './lib/boveda.mjs';
+import { leerFinanzas } from './lib/finanzas.mjs';
 import { calcularAlertas } from './lib/alertas.mjs';
 import { leerCache, escribirCache } from './lib/cache.mjs';
 import { ejecutarAccion } from './lib/acciones.mjs';
@@ -75,9 +76,14 @@ async function armarEstado({ config, maquina, conFetch, thumbs }) {
     };
   });
 
-  const extras = { sesionesSinDestilar: contarSesionesSinDestilar(maquina.boveda) };
+  const finanzas = leerFinanzas(maquina.boveda);
+  const extras = {
+    sesionesSinDestilar: contarSesionesSinDestilar(maquina.boveda),
+    finanzas
+  };
 
   return {
+    finanzas,
     maquina: {
       hostname: maquina.hostname,
       etiqueta: maquina.etiqueta ?? maquina.hostname,

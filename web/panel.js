@@ -87,6 +87,58 @@ function tarjeta(p) {
     </article>`;
 }
 
+// ── finanzas ───────────────────────────────────────────────────────────────
+const ars = (n) => `$${Math.round(n).toLocaleString('es-AR')}`;
+
+function dibujarFinanzas(fin) {
+  const seccion = $('#finanzas');
+  if (!fin || !fin.items?.length) { seccion.hidden = true; return; }
+  seccion.hidden = false;
+
+  // El total del mes es contexto; lo que importa es lo vencido. Por eso va primero y
+  // es lo unico que se tiñe.
+  const fichas = [];
+  if (fin.totalVencido > 0 || fin.vencidos.length) {
+    fichas.push(`<div class="fin-ficha vencido">
+      <span class="fin-rotulo">vencido</span>
+      <strong>${ars(fin.totalVencido)}</strong>
+      <span class="fin-nota">${fin.vencidos.length} ${fin.vencidos.length === 1 ? 'pago' : 'pagos'}</span>
+    </div>`);
+  }
+  fichas.push(`<div class="fin-ficha">
+    <span class="fin-rotulo">pendiente del mes</span>
+    <strong>${ars(fin.totalPendiente)}</strong>
+    <span class="fin-nota">${fin.sinMonto.length ? `+ ${fin.sinMonto.length} sin monto` : 'todo con monto'}</span>
+  </div>`);
+  fichas.push(`<div class="fin-ficha">
+    <span class="fin-rotulo">total mensual</span>
+    <strong>${ars(fin.totalMensual)}</strong>
+    <span class="fin-nota">fijos + suscripciones</span>
+  </div>`);
+  if (fin.totalProximos > 0) {
+    fichas.push(`<div class="fin-ficha">
+      <span class="fin-rotulo">meses siguientes</span>
+      <strong>${ars(fin.totalProximos)}</strong>
+      <span class="fin-nota">${fin.proximos.length} cuotas</span>
+    </div>`);
+  }
+  $('#finanzas-resumen').innerHTML = fichas.join('');
+
+  const ROTULO = { pendiente: 'pendiente', pagado: 'pagado', revisar: 'revisar' };
+  $('#finanzas-lista').innerHTML = fin.items.map(i => {
+    const clases = ['fin-item', i.estado, i.vencido ? 'vencido' : '', i.futuro ? 'futuro' : ''];
+    const cuando = i.vencido
+      ? `venció hace ${i.diasDeAtraso} ${i.diasDeAtraso === 1 ? 'día' : 'días'}`
+      : escapar(i.vencimientoTexto);
+    return `<div class="${clases.filter(Boolean).join(' ')}" title="${escapar(i.notas || '')}">
+      <span class="fin-estado">${ROTULO[i.estado] ?? i.estado}</span>
+      <span class="fin-concepto">${escapar(i.concepto)}</span>
+      <span class="fin-cuando">${cuando}</span>
+      <span class="fin-monto">${i.monto ? ars(i.monto) : escapar(i.montoTexto)}</span>
+    </div>`;
+  }).join('');
+}
+
 function dibujar(datos) {
   // Se trabaja desde dos maquinas y el panel es igual en las dos: conviene que diga en
   // cual estas de un vistazo. La etiqueta va adelante y el hostname al lado, salvo que no
@@ -107,6 +159,8 @@ function dibujar(datos) {
   pintarDev(Object.fromEntries(
     datos.proyectos.filter(p => p.dev).map(p => [p.nombre, p.dev])
   ));
+
+  dibujarFinanzas(datos.finanzas);
 
   const cuando = new Date(datos.generado).toLocaleString('es-AR');
   $('#generado').textContent = datos.conFetch
