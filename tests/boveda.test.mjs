@@ -37,6 +37,31 @@ test('la descripcion es el primer parrafo bajo Descripcion', () => {
   assert.equal(f.descripcion, 'Sitio de una sola página con hero 3D. Trilingüe ES/EN/PT.');
 });
 
+// En el panel se leia `Sitio para **New Metals**, el emprendimiento` con los asteriscos.
+test('la descripcion sale sin marcado de markdown', () => {
+  const ficha = [
+    '---', 'titulo: X', '---', '',
+    '## Descripción', '',
+    'Sitio para **New Metals**, de *Gabriel* — ver [[gabriel-diaz]] y',
+    '[la guia](https://x.dev) con `npm run dev`.'
+  ].join('\n');
+  assert.equal(
+    parsearFicha(ficha).descripcion,
+    'Sitio para New Metals, de Gabriel — ver gabriel-diaz y la guia con npm run dev.'
+  );
+});
+
+test('un callout de Obsidian no se toma como descripcion', () => {
+  const ficha = [
+    '---', 'titulo: X', '---', '',
+    '## Descripción', '',
+    '> [!important] Un aviso que no es la descripcion',
+    '> con su segunda linea', '',
+    'Este si es el parrafo real.'
+  ].join('\n');
+  assert.equal(parsearFicha(ficha).descripcion, 'Este si es el parrafo real.');
+});
+
 test('la ficha minima no rompe: campos ausentes quedan en null o array vacio', () => {
   const f = parsearFicha(minima);
   assert.equal(f.titulo, 'Proyecto Pelado');
