@@ -13,6 +13,7 @@ import { leerCache, escribirCache } from './lib/cache.mjs';
 import { ejecutarAccion } from './lib/acciones.mjs';
 import { capturarTodas, listarThumbs, elegirMiniatura } from './lib/miniaturas.mjs';
 import { indiceDeCarpetas, configDeCarpeta, carpetaValida, listarProyectos } from './lib/proyectos.mjs';
+import * as dev from './lib/dev.mjs';
 
 const TIPOS = {
   '.html': 'text/html; charset=utf-8',
@@ -23,6 +24,18 @@ const TIPOS = {
   '.svg': 'image/svg+xml',
   '.json': 'application/json; charset=utf-8'
 };
+
+function leerCuerpo(req) {
+  return new Promise((resolve, reject) => {
+    let d = '';
+    req.on('data', c => {
+      d += c;
+      if (d.length > 4096) reject(new Error('cuerpo demasiado grande'));
+    });
+    req.on('end', () => resolve(d));
+    req.on('error', reject);
+  });
+}
 
 // El boton de dev solo aparece si el proyecto tiene un script que levantar.
 function scriptDeDev(rutaRepo) {
@@ -45,15 +58,19 @@ async function armarEstado({ config, maquina, conFetch, thumbs }) {
   const archivosThumbs = listarThumbs(thumbs);
 
   const indice = indiceDeCarpetas(config);
+  const estadoDev = dev.estado();
 
-  const proyectos = nombres.map(nombre => {
+  const proyectos = nombres.map((nombre, i) => {
     const cfg = configDeCarpeta(config, nombre, indice);
+    const scriptDev = scriptDeDev(join(maquina.repos, nombre));
     return {
       nombre,
       git: git[nombre],
       ficha: leerFicha(maquina.boveda, cfg.ficha),
       config: cfg,
-      scriptDev: scriptDeDev(join(maquina.repos, nombre)),
+      scriptDev,
+      puertoDev: scriptDev ? dev.puertoDe(config, nombre, cfg, i) : null,
+      dev: estadoDev[nombre] ?? null,
       miniatura: elegirMiniatura(nombre, archivosThumbs)
     };
   });
@@ -98,22 +115,55 @@ export function crearServidor({ raiz, config, maquina }) {
         return json(200, leerCache(rutaCache) ?? { vacia: true });
       }
 
+      // Estado de los dev nada mas: es lo que la interfaz consulta cada pocos segundos
+      // mientras hay alguno levantado, y no puede costar un `git fetch` de nueve repos.
+      if (url.pathname === '/api/dev' && req.method === 'GET') {
+        return json(200, { dev: dev.estado() });
+      }
+
+      if (url.pathname === '/api/dev' && req.method === 'POST') {
+        const cuerpo = await leerCuerpo(req);
+        const { proyecto, accion } = JSON.parse(cuerpo || '{}');
+
+        if (accion === 'detener-todos') {
+          return json(200, { detenidos: dev.detenerTodos(), dev: dev.estado() });
+        }
+
+        if (!carpetaValida(maquina.repos, proyecto)) {
+          return json(400, { error: `Proyecto desconocido: ${proyecto}` });
+        }
+
+        try {
+          if (accion === 'detener') {
+            dev.detener(proyecto);
+          } else if (accion === 'arrancar') {
+            const nombres = listarProyectos(maquina.repos, config);
+            const cfg = configDeCarpeta(config, proyecto);
+            dev.arrancar(proyecto, {
+              rutaRepo: join(maquina.repos, proyecto),
+              script: scriptDeDev(join(maquina.repos, proyecto)),
+              puerto: dev.puertoDe(config, proyecto, cfg, nombres.indexOf(proyecto))
+            });
+            dev.podar(config.dev?.maxSimultaneos);
+          } else if (accion === 'usar') {
+            dev.marcarUso(proyecto);
+          } else {
+            return json(400, { error: `Accion de dev no permitida: ${accion}` });
+          }
+        } catch (e) {
+          return json(400, { error: e.message });
+        }
+
+        return json(200, { dev: dev.estado() });
+      }
+
       if (url.pathname === '/api/miniaturas' && req.method === 'POST') {
         const r = await capturarTodas(config, thumbs);
         return json(200, r);
       }
 
       if (url.pathname === '/api/accion' && req.method === 'POST') {
-        const cuerpo = await new Promise((resolve, reject) => {
-          let d = '';
-          req.on('data', c => {
-            d += c;
-            if (d.length > 4096) reject(new Error('cuerpo demasiado grande'));
-          });
-          req.on('end', () => resolve(d));
-          req.on('error', reject);
-        });
-
+        const cuerpo = await leerCuerpo(req);
         const { proyecto, accion, bat } = JSON.parse(cuerpo || '{}');
 
         // La carpeta tiene que existir de verdad dentro de la carpeta de repos. Eso es
@@ -188,4 +238,35 @@ if (import.meta.url === `file://${process.argv[1]}`.replace(/\\/g, '/') ||
   crearServidor({ raiz, config, maquina }).listen(puerto, '127.0.0.1', () => {
     console.log(`Panel en http://127.0.0.1:${puerto}`);
   });
+
+  // Los dev los tiene el panel: si el panel se va, se van con el. Sin esto quedan
+  // puertos tomados por procesos que ya nadie controla, que es justo lo que este
+  // modulo viene a evitar.
+  let cerrando = false;
+  const cerrar = (senal) => {
+    if (cerrando) return;
+    cerrando = true;
+    const detenidos = dev.detenerTodos();
+    if (detenidos.length) console.log(`Dev detenidos: ${detenidos.join(', ')}`);
+    if (senal) process.exit(0);
+  };
+
+  process.on('exit', () => cerrar(null));
+  for (const senal of ['SIGINT', 'SIGTERM', 'SIGHUP', 'SIGBREAK']) {
+    process.on(senal, () => cerrar(senal));
+  }
+
+  // Si al panel anterior lo mataron a la fuerza, sus dev siguen vivos y con el puerto
+  // tomado. No se matan de prepo al arrancar —puede ser un `npm run dev` que levantaste
+  // vos a mano—, pero conviene decirlo: al levantar ese proyecto desde el panel se libera.
+  const huerfanos = [];
+  for (const [clave, cfg] of Object.entries(config.proyectos ?? {})) {
+    if (!Number.isInteger(cfg.puertoDev)) continue;
+    const pid = dev.pidEnPuerto(cfg.puertoDev);
+    if (pid) huerfanos.push(`${clave} :${cfg.puertoDev} (pid ${pid})`);
+  }
+  if (huerfanos.length) {
+    console.log(`Puertos de dev ya ocupados: ${huerfanos.join(', ')}`);
+    console.log('Se liberan solos al levantar ese proyecto desde el panel.');
+  }
 }

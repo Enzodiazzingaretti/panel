@@ -335,6 +335,71 @@ body::after {
 .meta .sucio { color: #c9a227; }
 .meta .atras { color: var(--rave-bright); }
 
+/* ─── dev ───────────────────────────────────────────────────────────────────
+   La unica accion con estado: se enciende y se apaga. Va en su propia fila, con
+   el puerto siempre a la vista — es lo que se pega en el navegador. */
+.dev {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  background: rgba(0, 0, 0, 0.35);
+  font-family: var(--mono);
+  font-size: 0.7rem;
+}
+
+.dev.listo { border-color: rgba(139, 0, 0, 0.55); }
+
+.dev button {
+  font: inherit;
+  font-size: 0.68rem;
+  margin-left: auto;
+  padding: 0.22rem 0.5rem;
+  border-radius: 2px;
+  color: var(--dim);
+  background: transparent;
+  border: 1px solid var(--line);
+  cursor: pointer;
+  transition: color var(--fast) var(--ease), border-color var(--fast) var(--ease);
+}
+
+.dev button:hover { color: var(--paper); border-color: var(--rave-hover); }
+.dev .dev-arrancar { margin-left: 0; }
+.dev-puerto { color: var(--mute); }
+.dev-error { color: var(--rave-bright); }
+.dev-texto { color: var(--dim); }
+
+.dev-link {
+  color: var(--rave-bright);
+  text-decoration: none;
+  letter-spacing: 0.02em;
+  border-bottom: 1px solid transparent;
+}
+
+.dev-link:hover { border-bottom-color: var(--rave-bright); }
+
+/* el pulso dice "esto esta vivo" sin ocupar texto */
+.dev-pulso {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--rave-bright);
+  flex-shrink: 0;
+  animation: latir 1.8s var(--ease) infinite;
+}
+
+.dev.arrancando .dev-pulso { background: #c9a227; }
+
+@keyframes latir {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(255, 59, 59, 0.5); }
+  70% { opacity: 0.55; box-shadow: 0 0 0 5px rgba(255, 59, 59, 0); }
+}
+
+.boton-alerta { color: var(--rave-bright); border-color: rgba(139, 0, 0, 0.5); }
+.boton-alerta:hover { color: var(--paper); background: var(--rave); border-color: var(--rave-hover); }
+
 .botones { display: flex; flex-wrap: wrap; gap: 0.3rem; }
 
 .botones button {

@@ -20,11 +20,45 @@ function textoMeta(p) {
   return partes.join('');
 }
 
+// El dev es la unica accion con estado: el resto lanza algo y se olvida, esta se
+// enciende y se apaga. Por eso tiene su propia fila arriba de los botones.
+function bloqueDev(p) {
+  if (!p.scriptDev) return '';
+  const d = p.dev;
+
+  if (!d || d.estado === 'caido') {
+    const fallo = d?.error
+      ? `<span class="dev-error" title="${escapar(d.error)}">se cayó</span>`
+      : '';
+    return `<div class="dev">
+      <button class="dev-arrancar" data-dev="arrancar">Levantar dev</button>
+      <span class="dev-puerto">:${p.puertoDev}</span>${fallo}
+    </div>`;
+  }
+
+  if (d.estado === 'arrancando') {
+    return `<div class="dev arrancando">
+      <span class="dev-pulso"></span>
+      <span class="dev-texto">levantando en :${d.puerto}…</span>
+      <button data-dev="detener">Cancelar</button>
+    </div>`;
+  }
+
+  return `<div class="dev listo">
+    <span class="dev-pulso"></span>
+    <a class="dev-link" href="${d.url}" target="_blank" rel="noreferrer" data-dev="usar">localhost:${d.puerto}</a>
+    <button data-dev="detener">Detener</button>
+  </div>`;
+}
+
+function escapar(t) {
+  return String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+}
+
 function botones(p) {
   const b = [];
   b.push(`<button data-accion="claude">Claude</button>`);
   b.push(`<button data-accion="vscode">VS Code</button>`);
-  if (p.scriptDev) b.push(`<button data-accion="dev">Dev</button>`);
   if (p.config?.prod) b.push(`<button data-accion="prod">Producción</button>`);
   if (p.git?.remoto) b.push(`<button data-accion="github">GitHub</button>`);
   if (p.config?.ficha) b.push(`<button data-accion="ficha">Ficha</button>`);
@@ -47,6 +81,7 @@ function tarjeta(p) {
         <h3 class="nombre">${p.ficha?.titulo ?? p.nombre}</h3>
         <p class="descripcion">${desc}</p>
         <div class="meta">${textoMeta(p)}</div>
+        ${bloqueDev(p)}
         <div class="botones">${botones(p)}</div>
       </div>
     </article>`;
@@ -67,6 +102,11 @@ function dibujar(datos) {
     .join('');
 
   $('#grilla').innerHTML = datos.proyectos.map(tarjeta).join('');
+
+  ultimoEstado = datos;
+  pintarDev(Object.fromEntries(
+    datos.proyectos.filter(p => p.dev).map(p => [p.nombre, p.dev])
+  ));
 
   const cuando = new Date(datos.generado).toLocaleString('es-AR');
   $('#generado').textContent = datos.conFetch
@@ -91,11 +131,82 @@ async function accion(proyecto, nombre, bat) {
   }
 }
 
+// ── dev ────────────────────────────────────────────────────────────────────
+// El estado de los dev cambia solo (arrancando → listo, o se cae), asi que se sondea,
+// pero unicamente mientras haya alguno vivo: con todo apagado el panel no hace nada.
+let ultimoEstado = null;
+let sondeo = null;
+
+function pintarDev(mapaDev) {
+  if (!ultimoEstado) return;
+  for (const p of ultimoEstado.proyectos) p.dev = mapaDev[p.nombre] ?? null;
+
+  for (const p of ultimoEstado.proyectos) {
+    const tarjeta = document.querySelector(`.tarjeta[data-proyecto="${CSS.escape(p.nombre)}"]`);
+    const bloque = tarjeta?.querySelector('.dev');
+    if (!tarjeta || !p.scriptDev) continue;
+    const nuevo = bloqueDev(p);
+    if (bloque) bloque.outerHTML = nuevo;
+    else tarjeta.querySelector('.botones')?.insertAdjacentHTML('beforebegin', nuevo);
+  }
+
+  const vivos = Object.values(mapaDev).filter(d => d.estado !== 'caido').length;
+  $('#detener-dev').hidden = vivos === 0;
+  $('#detener-dev').textContent = vivos === 1 ? 'Detener el dev' : `Detener los ${vivos} dev`;
+
+  if (vivos > 0) arrancarSondeo();
+  else pararSondeo();
+}
+
+function arrancarSondeo() {
+  if (sondeo) return;
+  sondeo = setInterval(async () => {
+    try {
+      const { dev } = await (await fetch('/api/dev')).json();
+      pintarDev(dev);
+    } catch { pararSondeo(); }
+  }, 1500);
+}
+
+function pararSondeo() {
+  if (sondeo) { clearInterval(sondeo); sondeo = null; }
+}
+
+async function accionDev(proyecto, accion) {
+  const res = await fetch('/api/dev', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ proyecto, accion })
+  });
+  const datos = await res.json();
+  if (!res.ok) { alert(datos.error); return; }
+  pintarDev(datos.dev);
+}
+
+$('#detener-dev').addEventListener('click', async () => {
+  const res = await fetch('/api/dev', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ accion: 'detener-todos' })
+  });
+  pintarDev((await res.json()).dev);
+});
+
 $('#grilla').addEventListener('click', (e) => {
+  const tarjeta = e.target.closest('.tarjeta');
+  if (!tarjeta) return;
+  const proyecto = tarjeta.dataset.proyecto;
+
+  // el link al dev abre el navegador solo: aca solo se marca que se uso, para que la
+  // poda automatica no cierre justo el que estabas mirando
+  const link = e.target.closest('a[data-dev="usar"]');
+  if (link) { accionDev(proyecto, 'usar'); return; }
+
+  const botonDev = e.target.closest('button[data-dev]');
+  if (botonDev) { accionDev(proyecto, botonDev.dataset.dev); return; }
+
   const boton = e.target.closest('button[data-accion]');
-  if (!boton) return;
-  const proyecto = boton.closest('.tarjeta').dataset.proyecto;
-  accion(proyecto, boton.dataset.accion, boton.dataset.bat);
+  if (boton) accion(proyecto, boton.dataset.accion, boton.dataset.bat);
 });
 
 $('#refrescar').addEventListener('click', async (e) => {

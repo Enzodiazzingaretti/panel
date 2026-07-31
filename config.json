@@ -1,5 +1,8 @@
 {
   "puerto": 4321,
+  "dev": {
+    "maxSimultaneos": 3
+  },
   "maquinas": {
     "DESKTOP-HM0V74B": {
       "etiqueta": "PC principal",
@@ -25,15 +28,18 @@
   "proyectos": {
     "kexxy-portfolio": {
       "ficha": "kexxy-portfolio",
-      "prod": "https://portfolio-kexxy.vercel.app"
+      "prod": "https://portfolio-kexxy.vercel.app",
+      "puertoDev": 5181
     },
     "tamara-portfolio": {
       "ficha": "tamara-portfolio",
-      "prod": "https://tamara-portfolio-xi.vercel.app"
+      "prod": "https://tamara-portfolio-xi.vercel.app",
+      "puertoDev": 5182
     },
     "newmetals-portfolio": {
       "ficha": "newmetals-portfolio",
-      "prod": "https://newmetals-portfolio.vercel.app"
+      "prod": "https://newmetals-portfolio.vercel.app",
+      "puertoDev": 5183
     },
     "presskit_digital": {
       "ficha": "presskit-digital",
@@ -44,7 +50,8 @@
       "prod": null,
       "alias": [
         "aurora-retreat"
-      ]
+      ],
+      "puertoDev": 5184
     },
     "panel": {
       "ficha": "panel-local",
